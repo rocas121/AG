@@ -1,2 +1,4 @@
 # Angry bird project
-![Do not falter](https://pbs.twimg.com/media/GJsUtIlWcAAHG3-?format=jpg&name=large)
+<div style="text-align: center;">
+  <img src="https://pbs.twimg.com/media/GJsUtIlWcAAHG3-?format=jpg&name=large" alt="Do not falter" width="400" />
+</div>
