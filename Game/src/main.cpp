@@ -3,6 +3,7 @@
 //Juste mettre game
 int main()
 {
-    game();
+    Game game;
+    game.game();
     return 0;
 }
