@@ -14,6 +14,7 @@ private:
     const float g = 9.81f * 40.0f;  // constante gravitationnelle (m/s2)
     const float k = 100.0f;     // constante de raideur du ressort (N/m)
     const float f2 = 0.2f / m;  // coeff de frottement divise par la masse
+    const float cr = 0.85f;  // coeff de restitution (caoutchouc )
 
     // vitesse
     const float VELOCITY_FACTOR = 10.0f; 

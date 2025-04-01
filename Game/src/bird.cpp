@@ -159,8 +159,13 @@ void Bird::update(const sf::RenderWindow& window, sf::Time delta) {
             velocity.y += g * dt;
         }
 
+        if (rect.getPosition().y + 45 > 600) {
+            velocity.y =  - velocity.y  * cr;
+            rect.setPosition(rect.getPosition().x, 600 - 45); // Teleporte juste au dessus du sol
+        }
+
         // Verification des collisions avec les bords
-        if (rect.getPosition().y > 600 || rect.getPosition().x > 800 || rect.getPosition().x < 0) {
+        if (rect.getPosition().x > 800 || rect.getPosition().x < 0) {
             resetBird();
         }
     }
