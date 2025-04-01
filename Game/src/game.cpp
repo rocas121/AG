@@ -1,16 +1,17 @@
 #include "game.h"
+#include <iostream>
 
 int Game::game() {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Angry Birds-like", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Angry Birds Physics", sf::Style::Titlebar | sf::Style::Close);
     sf::Clock clock;
-    window.setFramerateLimit(60);
-    
+
     Bird bird({ 25.f, 25.f }, { 100.f, 500.f }, sf::Color::Green);
 
     //AFFICHAGE DE LA RANGE POUR TIRRER
-    sf::RectangleShape range(sf::Vector2f(45,45));
+    sf::RectangleShape range(sf::Vector2f(45, 45));
     range.setPosition(90, 490);
     range.setFillColor(sf::Color::White);
+
 
     while (window.isOpen())
     {
@@ -26,13 +27,11 @@ int Game::game() {
 
         bird.update(window, deltaTime);
 
-
-
-        window.clear();
+        window.clear(sf::Color(50, 50, 50));
 
         window.draw(range);
         bird.draw(window);
-        
+
         window.display();
     }
     return 0;
