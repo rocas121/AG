@@ -148,9 +148,9 @@ void Bird::update(const sf::RenderWindow& window, sf::Time delta) {
         velocity.x += -f2 * velocity.x * dt; // Friction horizontale
         velocity.y += g * dt - f2 * velocity.y * dt; // Gravité + friction verticale
 
-        if (rect.getPosition().y + 45 > 610) {
+        if (rect.getPosition().y + 34 > 610) {
             velocity.y =  - velocity.y  * cr;
-            rect.setPosition(rect.getPosition().x, 610 - 45); // Teleporte juste au dessus du sol
+            rect.setPosition(rect.getPosition().x, 610 - 34); // Teleporte juste au dessus du sol
         }
 
         // Verification des collisions avec les bords
