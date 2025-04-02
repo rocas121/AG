@@ -5,7 +5,7 @@ Bird::Bird(sf::Vector2f size, sf::Vector2f pos, sf::Color color)
     : holdMouse(false),
     velocity(0.f, 0.f),
     showTrajectory(true),
-    useFriction(false),
+    useFriction(true),
     isLaunched(false),
     initialPos(pos) {
     rect.setSize(size);
@@ -14,15 +14,14 @@ Bird::Bird(sf::Vector2f size, sf::Vector2f pos, sf::Color color)
 }
 
 float Bird::calculateInitialVelocity(float alpha, float l1) {
-    // l1 est la distance tirement en pixels
-    float stretchForce = l1 * 0.8f;
+    float term1 = std::sqrt(k / m);
+    float term2 = (m * g * std::sin(alpha)) / (k * l1);
 
-    float v_eject = stretchForce * VELOCITY_FACTOR;
+    float v_eject = l1 * term1 * std::sqrt(1.0f - term2 * term2);
 
-    float angleFactor = std::sin(2 * alpha);
-    v_eject *= (1.0f + 0.5f * std::abs(angleFactor));
-
-    return v_eject;
+    // Scale the velocity for better in-game representation
+    //float scale_factor = 1.0f;
+    return v_eject /** scale_factor*/;
 }
 
 void Bird::calculateTrajectory() {
@@ -36,35 +35,30 @@ void Bird::calculateTrajectory() {
     // Calcul du vecteur de lancement
     sf::Vector2f launchVector = rangeCenter - birdPos;
     float l1 = std::sqrt(launchVector.x * launchVector.x + launchVector.y * launchVector.y);
-    float alpha = std::atan2(-launchVector.y, launchVector.x);
 
-    // Calcul de la vitesse initiale
+    // Inverser l'angle pour tenir compte de l'orientation des axes dans SFML
+    float alpha = std::atan2(launchVector.y, launchVector.x);
+
     float v0 = calculateInitialVelocity(alpha, l1);
 
-    // Point de depart
     float x = birdPos.x;
     float y = birdPos.y;
     float vx = v0 * std::cos(alpha);
-	float vy = -v0 * std::sin(alpha);  // Negatif car l'axe Y est inverse dans SFML (don't know why)
+    float vy = v0 * std::sin(alpha);
 
     trajectory.push_back(sf::Vector2f(x, y));
 
-    const float dt = 0.05f;
-    const int maxPoints = 200;
+    const float dt = 0.01f;
+    const int maxPoints = 500;
 
     for (int i = 0; i < maxPoints; i++) {
         // Mise à jour de la position
         x += vx * dt;
         y += vy * dt;
 
-        // Mise à jour de la vitesse
-        if (useFriction) {
-            vx += -f2 * vx * dt;
-            vy += g * dt - f2 * vy * dt;
-        }
-        else {
-            vy += g * dt;
-        }
+        // Mise à jour de la vitesse avec la formule appropriée
+        vx += -f2 * vx * dt; // Friction horizontale
+        vy += g * dt - f2 * vy * dt; // Gravité + friction verticale (g est positif car SFML a Y vers le bas)
 
         // Ajoute le point à la trajectoire
         trajectory.push_back(sf::Vector2f(x, y));
@@ -80,7 +74,7 @@ void Bird::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
             holdMouse = true;
             isLaunched = false;
             mouseOffset = sf::Vector2f(sf::Mouse::getPosition(window)) - rect.getPosition();
-            rect.setFillColor(sf::Color::Yellow);  // Couleur quand l'oiseau est tenu
+            rect.setFillColor(sf::Color::Yellow);  // Couleur Jaune quand l'oiseau est tenu
         }
     }
     else if (event.type == sf::Event::MouseButtonReleased && holdMouse) {
@@ -97,14 +91,15 @@ void Bird::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
             // Calcul du vecteur de lancement
             sf::Vector2f launchVector = rangeCenter - birdPos;
             float l1 = std::sqrt(launchVector.x * launchVector.x + launchVector.y * launchVector.y);
-            float alpha = std::atan2(-launchVector.y, launchVector.x);
 
-            // Calcul de la vitesse initiale
+            // Inverser l'angle pour tenir compte de l'orientation des axes dans SFML
+            float alpha = std::atan2(launchVector.y, launchVector.x);
+
             float v0 = calculateInitialVelocity(alpha, l1);
 
             // Definition de la vitesse de l'oiseau
             velocity.x = v0 * std::cos(alpha);
-            velocity.y = -v0 * std::sin(alpha);
+            velocity.y = v0 * std::sin(alpha);
 
             // Calcul de la trajectoire predite
             calculateTrajectory();
@@ -150,17 +145,16 @@ void Bird::update(const sf::RenderWindow& window, sf::Time delta) {
         // Deplacement base sur la vitesse actuelle
         rect.move(velocity * dt);
 
-        // Mise à jour de la vitesse
-        if (useFriction) {
-            velocity.x += -f2 * velocity.x * dt;
-            velocity.y += g * dt - f2 * velocity.y * dt;
-        }
-        else {
-            velocity.y += g * dt;
-        }
+        velocity.x += -f2 * velocity.x * dt; // Friction horizontale
+        velocity.y += g * dt - f2 * velocity.y * dt; // Gravité + friction verticale
+
+        //if (rect.getPosition().y + 45 > 600) {
+        //    velocity.y = -velocity.y * cr;
+        //    rect.setPosition(rect.getPosition().x, 600 - 45); // Teleporte juste au dessus du sol
+        //}
 
         // Verification des collisions avec les bords
-        if (rect.getPosition().y > 600 || rect.getPosition().x > 800 || rect.getPosition().x < 0) {
+        if (rect.getPosition().x > 800 || rect.getPosition().x < 0) {
             resetBird();
         }
     }
@@ -168,11 +162,11 @@ void Bird::update(const sf::RenderWindow& window, sf::Time delta) {
 
 void Bird::draw(sf::RenderWindow& window) const {
     // Afficher la trajectoire prevue
-    if (trajectory.size() >= 2) {
+    if (trajectory.size() >= 2 && (holdMouse || !isLaunched)) {
         sf::VertexArray lines(sf::LinesStrip, trajectory.size());
         for (size_t i = 0; i < trajectory.size(); ++i) {
             lines[i].position = trajectory[i];
-            lines[i].color = useFriction ? sf::Color::Blue : sf::Color::Red;
+            lines[i].color = sf::Color::Red;
         }
         window.draw(lines);
     }
@@ -186,7 +180,6 @@ void Bird::toggleFriction() {
 
     std::cout << "Frottement: " << (useFriction ? "Active" : "Desactive") << std::endl;
 
-    // Recalculer la trajectoire
     if (holdMouse || isLaunched) {
         calculateTrajectory();
     }
