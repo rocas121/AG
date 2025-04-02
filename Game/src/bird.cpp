@@ -20,8 +20,8 @@ float Bird::calculateInitialVelocity(float alpha, float l1) {
     float v_eject = l1 * term1 * std::sqrt(1.0f - term2 * term2);
 
     // Scale the velocity for better in-game representation
-    //float scale_factor = 1.0f;
-    return v_eject /** scale_factor*/;
+    float scale_factor = 2.0f;
+    return v_eject * scale_factor;
 }
 
 void Bird::calculateTrajectory() {
@@ -148,12 +148,7 @@ void Bird::update(const sf::RenderWindow& window, sf::Time delta) {
         velocity.x += -f2 * velocity.x * dt; // Friction horizontale
         velocity.y += g * dt - f2 * velocity.y * dt; // Gravité + friction verticale
 
-        //if (rect.getPosition().y + 45 > 600) {
-        //    velocity.y = -velocity.y * cr;
-        //    rect.setPosition(rect.getPosition().x, 600 - 45); // Teleporte juste au dessus du sol
-        //}
-
-        if (rect.getPosition().y + 45 > 600) {
+        if (rect.getPosition().y + 45 > 610) {
             velocity.y =  - velocity.y  * cr;
             rect.setPosition(rect.getPosition().x, 600 - 45); // Teleporte juste au dessus du sol
         }
